@@ -15,4 +15,11 @@
 // router and does not impose ordering constraints beyond the documented
 // dependency of LoggingMiddleware on RequestIDMiddleware for request-ID
 // propagation in log entries.
+//
+// Recommended middleware ordering (outermost to innermost):
+//
+//  1. RequestIDMiddleware  - assign ID before anything else logs or errors
+//  2. LoggingMiddleware    - capture full request lifecycle including auth failures
+//  3. RateLimitMiddleware  - reject excess traffic before auth work is done
+//  4. AuthMiddleware       - validate signatures on traffic that passed rate limit
 package middlewares
