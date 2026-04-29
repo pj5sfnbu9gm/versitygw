@@ -1,18 +1,18 @@
 // Package middlewares provides HTTP middleware components for the versitygw
-// S3-compatible gateway API.
+// S3-compatible API gateway.
 //
-// # Authentication Middleware
+// Available middleware:
 //
-// The auth middleware validates incoming requests against AWS Signature
-// Version 4 (SigV4). It checks for the presence and basic format validity
-// of the Authorization and X-Amz-Date headers.
+//   - AuthMiddleware: validates AWS Signature Version 4 request signatures.
+//   - RequestIDMiddleware: attaches a unique request ID to each request context
+//     and response header (X-Request-Id).
+//   - LoggingMiddleware: structured access logging with latency, status code,
+//     and request metadata.
+//   - RateLimitMiddleware: per-IP sliding-window rate limiting that returns
+//     HTTP 429 Too Many Requests when the configured threshold is exceeded.
 //
-// Usage:
-//
-//	validator := middlewares.NewSignatureValidator(accessKey, secretKey)
-//	mux.Use(middlewares.AuthMiddleware(validator))
-//
-// On validation failure the middleware writes an S3-compatible XML error
-// response and stops the request chain. Successful requests are forwarded
-// to the next handler unchanged.
+// Middleware is designed to be composed with any standard net/http handler or
+// router and does not impose ordering constraints beyond the documented
+// dependency of LoggingMiddleware on RequestIDMiddleware for request-ID
+// propagation in log entries.
 package middlewares
