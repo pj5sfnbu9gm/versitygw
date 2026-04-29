@@ -10,10 +10,13 @@ import (
 )
 
 const (
-	awsDateFormat     = "20060102T150405Z"
+	awsDateFormat      = "20060102T150405Z"
 	awsShortDateFormat = "20060102"
-	signatureHeader   = "Authorization"
-	amzDateHeader     = "X-Amz-Date"
+	signatureHeader    = "Authorization"
+	amzDateHeader      = "X-Amz-Date"
+	// maxRequestAge is the maximum allowed age of a signed request (15 minutes).
+	// AWS default is also 15 minutes, but some clients use a tighter window.
+	maxRequestAge = 15 * time.Minute
 )
 
 // SignatureValidator validates AWS Signature Version 4 requests.
@@ -46,9 +49,14 @@ func (sv *SignatureValidator) ValidateRequest(r *http.Request) error {
 		return ErrMissingDateHeader
 	}
 
-	_, err := time.Parse(awsDateFormat, amzDate)
+	t, err := time.Parse(awsDateFormat, amzDate)
 	if err != nil {
 		return ErrInvalidDateHeader
+	}
+
+	// Reject requests whose timestamp is too far from the current time.
+	if age := time.Since(t); age > maxRequestAge || age < -maxRequestAge {
+		return ErrRequestExpired
 	}
 
 	return nil
